@@ -123,46 +123,188 @@ ItemType LeakyArrayStack<ItemType>::peek() const
 
 #ifndef NODE
 #define NODE
-template <classItemTpye>
+template <class ItemType>
 class node
 {
 public :
 	node();
-	node(ItemType data);
+	node(ItemType data, ItemType* i);
+	ItemType getData();
+	ItemType getNext();
 private :
 	ItemType item;
 	ItemType* next;
 };
-#endif
+#endif 
 
 // node class implementations
+
 template <class ItemType>
 node<ItemType>::node()
 {
 	next = nullptr;
 }
 
+
 template <class ItemType>
-node<ItemType>::node(ItemType data)
+node<ItemType>::node(ItemType data, ItemType* i = nullptr) : item(data), next(i) {};
+
+template <class ItemType>
+ItemType node<ItemType>::getData()
 {
-	item = data;
-	next = nullptr;
+	return item;
+}
+
+template <class ItemType>
+ItemType node<ItemType>::getNext()
+{
+	return next;
 }
 
 #ifndef LEAKY_LINKED_STACK
 #define LEAKY_LINKED_STACK
 template <class ItemType>
-class LeakLinkedStack : public LeakyStackInterface
+class LeakyLinkedStack : public LeakyStackInterface<ItemType>
 {
+public :
+	LeakyLinkedStack();
+	LeakyLinkedStack(const int& SIZE);
+	LeakyLinkedStack(const LeakyLinkedStack& Original);
+	~LeakyLinkedStack();
+	LeakyLinkedStack<ItemType>operator=(const LeakyLinkedStack& rhs);
+	bool isEmpty() const;
+	bool push(const ItemType&);
+	bool pop();
+	ItemType peek() const;
+private :
+	int size;
+	node<ItemType> *top;
 
 };
 #endif
-
 // leaky linked stack implementations
+template <class ItemType>
+LeakyLinkedStack<ItemType>::LeakyLinkedStack()
+{
+	top = nullptr;
+	size = 0;
+}
 
+template <class ItemType>
+LeakyLinkedStack<ItemType>::LeakyLinkedStack(const int& SIZE)
+{
+	size = SIZE;
+	top = nullptr;
+}
+
+template <class ItemType>
+LeakyLinkedStack<ItemType>::LeakyLinkedStack(const LeakyLinkedStack& original)
+{
+	size = original->size;
+	node<ItemType> *oldPtr = original->top;
+	node<ItemType> *copyNode = new node<ItemType>(oldPtr->item);
+	top = copyNode;
+	oldPtr = oldPtr->next;
+	copyNode = copyNode->next;
+
+	while (oldPtr != nullptr)
+	{
+		copyNode = new node<ItemType>(oldPtr->item);
+		copyNode = copyNode->next;
+		oldPtr = oldPtr->next;
+	}
+	tail = copyNode;
+	cout << "Copy constructor called." << endl;
+	return *this;
+}
+
+template <class ItemType>
+LeakyLinkedStack<ItemType>::~LeakyLinkedStack()
+{
+	/*
+	node<ItemType> *deletePtr = nullptr;
+	node<ItemType> *walker = top;
+
+	while (walker != nullptr)
+	{
+		walker = walker->next;
+		delete deletePtr;
+		deletePtr = walker;
+	}
+	top = nullptr;
+	deletePtr = nullptr;
+	*/
+}
+
+template <class ItemType>
+LeakyLinkedStack<ItemType>LeakyLinkedStack<ItemType>::operator=(const LeakyLinkedStack<ItemType>& rhs)
+{
+	this->size = rhs->size;
+	node<ItemType> rhsWalker = rhs->top;
+	node<ItemType> lhsWalker = new node<ItemType>(rhsWalker->item);
+	this->top = lhsWalker;
+	rhsWalker = rhsWalker->next;
+
+	while (rhsWalker != nullptr)
+	{
+		lhsWalker = new node<ItemType>(rhsWalker->item);
+		lhswalker = lhsWalker->next;
+		rhsWalker = rhswalker->next;
+	}
+	return *this;
+}
+
+template <class ItemType>
+bool LeakyLinkedStack<ItemType>::isEmpty() const
+	{
+		bool result = false;
+
+		if (top == nullptr)
+		{
+			result = true;
+			return result;
+		}
+		else
+			return result;
+	}
+	
+template <class ItemType>
+bool LeakyLinkedStack<ItemType>::push(const ItemType& data)
+{
+	/*
+	node<ItemType> *temp = nullptr;
+	if (top == nullptr)
+	{
+		temp = new node<ItemType>(data);
+		top = temp;
+	}
+	else
+	{
+		temp = top;
+		top = new node<ItemType>(data);
+		top->next = temp;
+	}
+	*/
+	return false;
+}
+
+template <class ItemType>
+ItemType LeakyLinkedStack<ItemType>::peek() const
+{
+	ItemType result = top->getData();
+	return result;
+}
+
+template <class ItemType>
+bool LeakyLinkedStack<ItemType>::pop()
+{
+	return true;
+}
 int main()
 {
 	LeakyArrayStack<int> foo;
+	LeakyLinkedStack<int> test(5);
+
 	foo.push(2);
 	foo.push(3);
 	foo.push(4);
@@ -179,6 +321,8 @@ int main()
 		cout << "Leaky stack is empty!" << endl;
 	else
 		cout << "Not Empty" << endl;
+
+
 	system("pause");
 	return 0;
 }
