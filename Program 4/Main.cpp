@@ -88,12 +88,12 @@ bool LeakyArrayStack<ItemType>::push(const ItemType& newEntry)
 	}
 	else if (top == MAX_SIZE - 1)  // if stack is full
 	{
-		for (int i = 0; i < MAX_SIZE - 2; ++i)  // remove oldest item from list
+		for (int i = 0; i < (MAX_SIZE - 1) ; ++i)  // remove oldest item from list
 		{
 			items[i] = items[i + 1];
-			items[top] = newEntry;
 			result = true;
 		}
+		items[top] = newEntry;
 	}
 	return result;
 }
@@ -126,13 +126,13 @@ ItemType LeakyArrayStack<ItemType>::peek() const
 template <class ItemType>
 class node
 {
-public :
+public:
 	ItemType item;
 	node<ItemType> *next;
 	node();
-	node(const ItemType& data, node<ItemType> *tempNext);
+	node(const ItemType& data);
 };
-#endif 
+#endif
 
 // node class implementations
 
@@ -144,10 +144,10 @@ node<ItemType>::node()
 
 
 template <class ItemType>
-node<ItemType>::node(const ItemType& data, node<ItemType>* tempNext = nullptr)
+node<ItemType>::node(const ItemType& data)
 {
 	item = data;
-	next = tempNext;
+	next = nullptr;
 }
 
 #ifndef LEAKY_LINKED_STACK
@@ -155,7 +155,7 @@ node<ItemType>::node(const ItemType& data, node<ItemType>* tempNext = nullptr)
 template <class ItemType>
 class LeakyLinkedStack : public LeakyStackInterface<ItemType>
 {
-public :
+public:
 	LeakyLinkedStack();
 	LeakyLinkedStack(const int& SIZE);
 	LeakyLinkedStack(const LeakyLinkedStack<ItemType>& Original);
@@ -165,8 +165,9 @@ public :
 	bool push(const ItemType&);
 	bool pop();
 	ItemType peek() const;
-private :
+private:
 	int size;
+	int count;
 	node<ItemType> *top;
 };
 #endif
@@ -176,6 +177,7 @@ LeakyLinkedStack<ItemType>::LeakyLinkedStack()
 {
 	top = nullptr;
 	size = 0;
+	count = 0;
 }
 
 template <class ItemType>
@@ -183,6 +185,7 @@ LeakyLinkedStack<ItemType>::LeakyLinkedStack(const int& SIZE)
 {
 	size = SIZE;
 	top = nullptr;
+	count = 0;
 }
 
 template <class ItemType>
@@ -215,11 +218,16 @@ LeakyLinkedStack<ItemType>::LeakyLinkedStack(const LeakyLinkedStack<ItemType>& o
 template <class ItemType>
 LeakyLinkedStack<ItemType>::~LeakyLinkedStack()
 {
+
+
 	while (!isEmpty())
 	{
+		cout << "test" << endl;
 		pop();
 	}
+
 	cout << "Destructor called." << endl;
+
 }
 
 
@@ -236,25 +244,25 @@ LeakyLinkedStack<ItemType>LeakyLinkedStack<ItemType>::operator=(const LeakyLinke
 	while (rhsWalker != nullptr)
 	{
 		lhsWalker = new node<ItemType>(rhsWalker->item);
-		lhswalker = lhsWalker->next;
-		rhsWalker = rhswalker->next;
+		lhsWalker = lhsWalker->next;
+		rhsWalker = rhsWalker->next;
 	}
+	cout << "Operator overload called." << endl;
 	return *this;
 }
 
 template <class ItemType>
 bool LeakyLinkedStack<ItemType>::isEmpty() const
+{
+
+	if (top == nullptr)
 	{
-		bool result = false;
-		if (top == nullptr)
-		{
-			result = true;
-			return result;
-		}
-		else
-			return result;
+		return true;
 	}
-	
+	else
+		return false;
+}
+
 template <class ItemType>
 bool LeakyLinkedStack<ItemType>::push(const ItemType& newEntry)
 {
@@ -265,22 +273,51 @@ bool LeakyLinkedStack<ItemType>::push(const ItemType& newEntry)
 		tempTop->item = newEntry;
 		tempTop->next = nullptr;
 		top = tempTop;
+		tempTop = nullptr;
+		++count;
+		return true;
 	}
+
+	else if (count == size)
+	{
+
+		node<ItemType> *walker = nullptr;
+		walker = top;
+		while (walker->next != nullptr)
+		{
+			walker = walker->next;
+		}
+		delete walker;
+		walker = nullptr;
+		tempTop = new node<ItemType>;
+		tempTop->item = newEntry;
+		tempTop->next = top;
+		top = tempTop;
+		tempTop = nullptr;
+		return true;
+
+	}
+
 	else
 	{
 		tempTop = new node<ItemType>;
 		tempTop->item = newEntry;
 		tempTop->next = top;
 		top = tempTop;
+		++count;
 		return true;
 	}
+	return false;
 }
 
 template <class ItemType>
 ItemType LeakyLinkedStack<ItemType>::peek() const
 {
-	ItemType result = top->item;
-	return result;
+	if (!isEmpty())
+	{
+		ItemType result = top->item;
+		return result;
+	}
 }
 
 template <class ItemType>
@@ -291,51 +328,63 @@ bool LeakyLinkedStack<ItemType>::pop()
 	{
 		node<ItemType> *deleteNode = top;
 		top = top->next;
+		deleteNode->next = nullptr;
 		delete deleteNode;
 		deleteNode = nullptr;
+		--count;
+		if (count == 0)
+			top = nullptr;
+		result = true;
 	}
-	return true;
+	return result;
 }
 
 int main()
 {
-	LeakyArrayStack<int> foo;
-	LeakyLinkedStack<int> test(5);
-	foo.push(2);
-	foo.push(3);
-	foo.push(4);
-	cout << foo.peek() << endl;
-	foo.push(16);
-	foo.push(17);
-	foo.push(12);
-	foo.pop();
-	foo.pop();
-	foo.pop();
-	foo.pop();
-	foo.pop();
-	foo.pop();
-	if (foo.isEmpty())
-		cout << "Leaky stack is empty!" << endl;
+	LeakyArrayStack<int> arrayStack;
+	LeakyLinkedStack<int> linkStack(5);
+	arrayStack.push(2);
+	arrayStack.push(3);
+	arrayStack.push(4);
+	cout << arrayStack.peek() << endl;
+	arrayStack.push(16);
+	arrayStack.push(17);
+	arrayStack.push(12);
+	cout << "Popped " << arrayStack.peek() << endl;
+	arrayStack.pop();
+	cout << "Popped " << arrayStack.peek() << endl;
+	arrayStack.pop();
+	cout << "Popped " << arrayStack.peek() << endl;
+	arrayStack.pop();
+	cout << "Popped " << arrayStack.peek() << endl;
+	arrayStack.pop();
+	cout << "Popped " << arrayStack.peek() << endl;
+	arrayStack.pop();
+	if (!arrayStack.pop())
+		cout << "Leaky array stack is empty!" << endl;
 	else
-		cout << "Not Empty" << endl;
-	test.push(2);
-	test.push(3);
-	test.push(4);
-	cout << test.peek() << endl;
-	test.push(16);
-	test.push(17);
-	test.push(12);
-	test.pop();
-	test.pop();
-	test.pop();
-	test.pop();
-	test.pop();
-	test.pop();
-	if (test.isEmpty())
-		cout << "Leaky link stack is empty." << endl;
+		cout << "Leaky array stack is not empty" << endl;
+	linkStack.push(2);
+	linkStack.push(3);
+	linkStack.push(4);
+	cout << linkStack.peek() << endl;
+	linkStack.push(16);
+	linkStack.push(17);
+	linkStack.push(12);
+	cout << "Popped " << linkStack.peek() << endl;
+	linkStack.pop();
+	cout << "Popped " << linkStack.peek() << endl;
+	linkStack.pop();
+	cout << "Popped " << linkStack.peek() << endl;
+	linkStack.pop();
+	cout << "Popped " << linkStack.peek() << endl;
+	linkStack.pop();
+	cout << "Popped " << linkStack.peek() << endl;
+	linkStack.pop();
+	if (!linkStack.pop())
+		cout << "Leaky link stack is empty!" << endl;
 	else
 		cout << "Leaky link stack is not empty." << endl;
-
 
 	system("pause");
 	return 0;
